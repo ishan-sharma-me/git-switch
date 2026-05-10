@@ -2,9 +2,9 @@
 set -euo pipefail
 
 # git-switch installer
-# Usage: curl -fsSL https://ishan-sharma-me.github.io/git-switch/install.sh | bash
+# Usage: curl -fsSL https://aanya-send-help.github.io/git-switch/install.sh | bash
 
-REPO="ishan-sharma-me/git-switch"
+REPO="aanya-send-help/git-switch"
 INSTALL_DIR="${HOME}/.local/bin"
 BINARY="git-switch"
 

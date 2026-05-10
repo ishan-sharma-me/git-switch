@@ -5,10 +5,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ishan-sharma-me/git-switch/internal/config"
-	"github.com/ishan-sharma-me/git-switch/internal/git"
-	"github.com/ishan-sharma-me/git-switch/internal/gpg"
-	"github.com/ishan-sharma-me/git-switch/internal/ssh"
+	"github.com/aanya-send-help/git-switch/internal/config"
+	"github.com/aanya-send-help/git-switch/internal/git"
+	"github.com/aanya-send-help/git-switch/internal/gpg"
+	"github.com/aanya-send-help/git-switch/internal/ssh"
 	"github.com/spf13/cobra"
 )
 

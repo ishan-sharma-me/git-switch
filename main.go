@@ -1,6 +1,6 @@
 package main
 
-import "github.com/ishan-sharma-me/git-switch/cmd"
+import "github.com/aanya-send-help/git-switch/cmd"
 
 func main() {
 	cmd.Execute()

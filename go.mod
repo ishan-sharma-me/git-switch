@@ -1,4 +1,4 @@
-module github.com/ishan-sharma-me/git-switch
+module github.com/aanya-send-help/git-switch
 
 go 1.26.1
 

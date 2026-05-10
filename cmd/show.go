@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ishan-sharma-me/git-switch/internal/config"
-	"github.com/ishan-sharma-me/git-switch/internal/gpg"
-	"github.com/ishan-sharma-me/git-switch/internal/ssh"
-	"github.com/ishan-sharma-me/git-switch/internal/ui"
+	"github.com/aanya-send-help/git-switch/internal/config"
+	"github.com/aanya-send-help/git-switch/internal/gpg"
+	"github.com/aanya-send-help/git-switch/internal/ssh"
+	"github.com/aanya-send-help/git-switch/internal/ui"
 	"github.com/spf13/cobra"
 )
 

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # git-switch uninstaller
-# Usage: curl -fsSL https://ishan-sharma-me.github.io/git-switch/uninstall.sh | bash
+# Usage: curl -fsSL https://aanya-send-help.github.io/git-switch/uninstall.sh | bash
 
 INSTALL_DIR="${HOME}/.local/bin"
 BINARY="git-switch"

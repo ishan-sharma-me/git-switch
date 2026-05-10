@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/ishan-sharma-me/git-switch/internal/config"
-	"github.com/ishan-sharma-me/git-switch/internal/ui"
+	"github.com/aanya-send-help/git-switch/internal/config"
+	"github.com/aanya-send-help/git-switch/internal/ui"
 	"github.com/spf13/cobra"
 )
 

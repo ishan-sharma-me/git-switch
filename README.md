@@ -21,7 +21,7 @@ One command switches your entire identity:
 **Quick install** (macOS & Linux):
 
 ```bash
-curl -fsSL https://ishan-sharma-me.github.io/git-switch/install.sh | bash
+curl -fsSL https://aanya-send-help.github.io/git-switch/install.sh | bash
 ```
 
 This downloads the latest binary for your platform, installs it to `~/.local/bin/`, sets up shell completions, and configures your PATH. Open a new terminal tab after installing.
@@ -29,7 +29,7 @@ This downloads the latest binary for your platform, installs it to `~/.local/bin
 **From source** (requires Go):
 
 ```bash
-git clone https://github.com/ishan-sharma-me/git-switch.git
+git clone https://github.com/aanya-send-help/git-switch.git
 cd git-switch
 make install
 ```
@@ -129,7 +129,7 @@ Adds git-switch awareness to `~/.claude/CLAUDE.md` so Claude Code knows how to m
 **Quick uninstall** (reverses the curl install):
 
 ```bash
-curl -fsSL https://ishan-sharma-me.github.io/git-switch/uninstall.sh | bash
+curl -fsSL https://aanya-send-help.github.io/git-switch/uninstall.sh | bash
 ```
 
 This removes the binary, shell completions, and Claude Code integration. Your config (`~/.config/git-switch/`) and SSH keys are not deleted.
