@@ -37,13 +37,12 @@ make install
 ## Usage
 
 ```bash
-# Add an existing SSH key as a managed account
+# Add a GitHub account. Auto-installs the GitHub CLI if needed,
+# opens the browser to log in, generates SSH+GPG keys, and uploads
+# them to GitHub for you. No manual copy-pasting into github.com settings.
 git-switch add
 
-# Create a new account with fresh SSH/GPG keys
-git-switch create
-
-# Switch to an account
+# Switch to an account (also flips the gh CLI's active account)
 git-switch personal
 
 # List all accounts (also the default when you run git-switch with no args)
@@ -55,24 +54,27 @@ git-switch test
 # Edit an account's name or details
 git-switch edit personal
 
-# Regenerate keys for an account
+# Regenerate keys for an account (uploads new keys + deletes old ones from GitHub)
 git-switch reset personal
 
-# Remove an account (keys stay on disk)
+# Remove an account (also deletes its keys from GitHub)
 git-switch remove personal
 ```
+
+Onboarding is GitHub-only: `git-switch add` drives everything through the GitHub CLI (`gh`), which is auto-installed into `~/.local/bin/gh` if you don't already have it. All you do is sign in once in the browser per account.
 
 ## What happens when you switch
 
 ```
 $ git-switch work
 
-[1/6] Checking known hosts... ok
-[2/6] Updating SSH config... ok
-[3/6] Loading SSH key... ok
-[4/6] Updating git config... Jane Doe <jane@company.com>
-[5/6] Configuring GPG... signing with ABCD1234EF567890
-[6/6] Testing connection... authenticated as janedoe-work
+[1/7] Checking known hosts... ok
+[2/7] Updating SSH config... ok
+[3/7] Loading SSH key... ok
+[4/7] Updating git config... Jane Doe <jane@company.com>
+[5/7] Configuring GPG... signing with ABCD1234EF567890
+[6/7] Testing connection... authenticated as janedoe-work
+[7/7] Syncing GitHub CLI... active gh user: @janedoe-work
 
 Switched to work
 ```

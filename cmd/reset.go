@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/aanya-send-help/git-switch/internal/config"
+	"github.com/aanya-send-help/git-switch/internal/gh"
 	"github.com/aanya-send-help/git-switch/internal/gpg"
 	"github.com/aanya-send-help/git-switch/internal/ssh"
 	"github.com/aanya-send-help/git-switch/internal/ui"
@@ -17,7 +18,7 @@ func init() {
 
 var resetCmd = &cobra.Command{
 	Use:               "reset <account>",
-	Short:             "Regenerate SSH/GPG keys for an account",
+	Short:             "Regenerate SSH/GPG keys for an account (also re-syncs them on GitHub)",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: completeAccountNames,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -38,8 +39,10 @@ var resetCmd = &cobra.Command{
 		if acct.GPGKey != "" {
 			fmt.Printf("  GPG: %s\n", acct.GPGKey)
 		}
+		if acct.GitHubLogin != "" {
+			fmt.Printf("  GitHub: @%s\n", acct.GitHubLogin)
+		}
 
-		// What to reset
 		resetSSH := ui.Confirm("\nRegenerate SSH key?", true)
 		resetGPG := ui.Confirm("Regenerate GPG key?", acct.GPGKey != "")
 
@@ -52,14 +55,29 @@ var resetCmd = &cobra.Command{
 			return nil
 		}
 
-		// Reset SSH key
+		// If we're going to talk to GitHub, switch the gh CLI to the right user up front.
+		if acct.GitHubLogin != "" {
+			if err := gh.SwitchAccount(acct.GitHubLogin); err != nil {
+				fmt.Printf("Warning: gh switch to @%s failed: %v\n", acct.GitHubLogin, err)
+				fmt.Println("GitHub-side updates will be skipped; update keys manually if needed.")
+				acct.GitHubLogin = "" // prevent gh.* calls below for this run
+			}
+		}
+
+		// Capture old key material before regen, so we can match-and-delete on GitHub afterwards.
+		var oldSSHPub string
+		oldGPGKey := acct.GPGKey
+		if acct.GitHubLogin != "" && resetSSH {
+			if keyPath, err := config.ExpandPath(acct.SSHKey); err == nil {
+				oldSSHPub, _ = ssh.ReadPublicKey(keyPath)
+			}
+		}
+
 		if resetSSH {
 			keyPath, err := config.ExpandPath(acct.SSHKey)
 			if err != nil {
 				return err
 			}
-
-			// Remove old key files
 			os.Remove(keyPath)
 			os.Remove(keyPath + ".pub")
 
@@ -67,27 +85,36 @@ var resetCmd = &cobra.Command{
 			if err := ssh.GenerateKey(keyPath, acct.Email); err != nil {
 				return fmt.Errorf("generating SSH key: %w", err)
 			}
-
-			// Add to agent
 			if err := ssh.AddKeyToAgent(keyPath); err != nil {
 				fmt.Printf("Warning: could not add to agent: %v\n", err)
 			}
 
-			// Show public key
-			pubKey, err := ssh.ReadPublicKey(keyPath)
-			if err != nil {
-				return err
+			if acct.GitHubLogin != "" {
+				if err := gh.AddSSHKey(keyPath+".pub", "git-switch:"+name); err != nil {
+					fmt.Printf("Warning: uploading new SSH key: %v\n", err)
+				} else {
+					fmt.Println("Uploaded new SSH key to GitHub.")
+					if oldSSHPub != "" {
+						if remote, lerr := gh.ListSSHKeys(); lerr == nil {
+							if match := gh.MatchSSHKeyByContent(remote, oldSSHPub); match != nil {
+								if derr := gh.DeleteSSHKey(match.ID); derr != nil {
+									fmt.Printf("Warning: deleting old SSH key from GitHub: %v\n", derr)
+								} else {
+									fmt.Printf("Deleted old SSH key from GitHub (id %d).\n", match.ID)
+								}
+							}
+						}
+					}
+				}
+			} else {
+				pubKey, _ := ssh.ReadPublicKey(keyPath)
+				fmt.Println("\n--- New Public SSH Key (paste into GitHub) ---")
+				fmt.Println(pubKey)
+				fmt.Println("----------------------------------------------")
+				ui.WaitForEnter("Press Enter when done...")
 			}
-			fmt.Println("\n--- New Public SSH Key ---")
-			fmt.Println(pubKey)
-			fmt.Println("-------------------------")
-			fmt.Println("Update this key at: https://github.com/settings/keys")
-			fmt.Println("  1. Delete the old key")
-			fmt.Println("  2. Add the new key above")
-			ui.WaitForEnter("\nPress Enter when done...")
 		}
 
-		// Reset GPG key
 		if resetGPG {
 			fmt.Println("\nGenerating new GPG key (RSA 4096)...")
 			keyID, err := gpg.GenerateKey(acct.Name, acct.Email)
@@ -97,13 +124,29 @@ var resetCmd = &cobra.Command{
 			acct.GPGKey = keyID
 			fmt.Printf("GPG key created: %s\n", keyID)
 
-			gpgPub, err := gpg.ExportPublicKey(keyID)
-			if err == nil {
-				fmt.Println("\n--- New Public GPG Key ---")
-				fmt.Println(gpgPub)
-				fmt.Println("--------------------------")
-				fmt.Println("Update this key at: https://github.com/settings/gpg/new")
-				ui.WaitForEnter("\nPress Enter when done...")
+			armored, _ := gpg.ExportPublicKey(keyID)
+			if acct.GitHubLogin != "" {
+				if err := gh.AddGPGKey(armored); err != nil {
+					fmt.Printf("Warning: uploading new GPG key: %v\n", err)
+				} else {
+					fmt.Println("Uploaded new GPG key to GitHub.")
+					if oldGPGKey != "" && oldGPGKey != keyID {
+						if remote, lerr := gh.ListGPGKeys(); lerr == nil {
+							if match := gh.MatchGPGKeyByID(remote, oldGPGKey); match != nil {
+								if derr := gh.DeleteGPGKey(match.ID); derr != nil {
+									fmt.Printf("Warning: deleting old GPG key from GitHub: %v\n", derr)
+								} else {
+									fmt.Printf("Deleted old GPG key from GitHub (id %d).\n", match.ID)
+								}
+							}
+						}
+					}
+				}
+			} else {
+				fmt.Println("\n--- New Public GPG Key (paste into GitHub) ---")
+				fmt.Println(armored)
+				fmt.Println("----------------------------------------------")
+				ui.WaitForEnter("Press Enter when done...")
 			}
 		}
 
@@ -111,13 +154,11 @@ var resetCmd = &cobra.Command{
 			return fmt.Errorf("saving config: %w", err)
 		}
 
-		// Test connectivity
 		fmt.Println("\nTesting connection...")
 		keyPath, _ := config.ExpandPath(acct.SSHKey)
 		username, err := ssh.TestGitHubAuth(keyPath)
 		if err != nil {
 			fmt.Printf("Warning: SSH test failed: %v\n", err)
-			fmt.Println("Make sure you've added the new public key to GitHub.")
 		} else {
 			fmt.Printf("Authenticated as: %s\n", username)
 		}

@@ -17,10 +17,11 @@ const (
 
 // Account represents a single managed Git identity.
 type Account struct {
-	SSHKey string `yaml:"ssh_key"`           // Path to private key (supports ~ prefix)
-	Name   string `yaml:"name"`              // git user.name
-	Email  string `yaml:"email"`             // git user.email
-	GPGKey string `yaml:"gpg_key,omitempty"` // GPG key ID, empty if none
+	SSHKey      string `yaml:"ssh_key"`                // Path to private key (supports ~ prefix)
+	Name        string `yaml:"name"`                   // git user.name
+	Email       string `yaml:"email"`                  // git user.email
+	GPGKey      string `yaml:"gpg_key,omitempty"`      // GPG key ID, empty if none
+	GitHubLogin string `yaml:"github_login,omitempty"` // gh username this account is bound to
 }
 
 // Config is the top-level git-switch configuration.
