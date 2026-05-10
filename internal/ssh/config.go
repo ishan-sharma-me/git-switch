@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -151,18 +152,24 @@ func writeSSHConfig(path string, before []string, sshKeyPath string, after []str
 		return fmt.Errorf("creating SSH dir: %w", err)
 	}
 
-	// Build managed block
+	// Build managed block. UseKeychain is macOS-only — it tells ssh to
+	// store passphrases in the Keychain. OpenSSH on Linux/other Unixes
+	// rejects it as "Bad configuration option".
 	managed := []string{
 		markerStart,
 		"Host github.com",
 		"  HostName github.com",
 		"  User git",
 		"  AddKeysToAgent yes",
-		"  UseKeychain yes",
-		"  IdentityFile " + sshKeyPath,
+	}
+	if runtime.GOOS == "darwin" {
+		managed = append(managed, "  UseKeychain yes")
+	}
+	managed = append(managed,
+		"  IdentityFile "+sshKeyPath,
 		"  IdentitiesOnly yes",
 		markerEnd,
-	}
+	)
 
 	// Write to temp file then rename (atomic)
 	tmpPath := path + ".git-switch-tmp"

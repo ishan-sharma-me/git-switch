@@ -89,7 +89,7 @@ Host github.com
   HostName github.com
   User git
   AddKeysToAgent yes
-  UseKeychain yes
+  UseKeychain yes          # macOS only — omitted on Linux/other Unixes
   IdentityFile ~/.ssh/id_work
   IdentitiesOnly yes
 # git-switch-managed-end
